@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Rezerwacja wizyty</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: #f3f4f6;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 1.2rem 2rem;
+        }
+
+        main {
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .card {
+            background: white;
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+            border-radius: 14px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        label {
+            display: block;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        select,
+        input {
+            width: 100%;
+            padding: 0.6rem;
+            margin-top: 0.3rem;
+        }
+
+        button {
+            margin-top: 1.5rem;
+            width: 100%;
+            padding: 0.7rem;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 1rem;
+            color: #2563eb;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>System rezerwacji wizyt</h1>
+    </header>
+
+    <main>
+        <div class="card">
+            <h2>Rezerwacja wizyty</h2>
+
+            <form method="post" th:action="@{/appointments}">
+
+                <label>Doradca</label>
+                <select name="advisorId" required>
+                    <option th:each="a : ${advisors}" th:value="${a.id}"
+                        th:text="${a.user.firstName + ' ' + a.user.lastName}">
+                    </option>
+                </select>
+
+                <label>Usługa</label>
+                <select name="serviceId" required>
+                    <option th:each="s : ${services}" th:value="${s.id}" th:text="${s.name}">
+                    </option>
+                </select>
+
+                <label>Data i godzina</label>
+                <input type="datetime-local" name="dateTime" required>
+
+                <button type="submit">Zarezerwuj</button>
+            </form>
+
+            <a href="/appointments">← Powrót</a>
+        </div>
+    </main>
+
+</body>
+
+</html>

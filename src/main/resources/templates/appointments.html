@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Moje wizyty</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #f8fafc, #eef2f7);
+            color: #0f172a;
+        }
+
+        header {
+            background: linear-gradient(135deg, #020617, #0f172a);
+            padding: 1.3rem;
+            text-align: center;
+        }
+
+        header a {
+            color: #f8fafc;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        main {
+            display: flex;
+            justify-content: center;
+            padding: 3rem 1.5rem;
+        }
+
+        .panel {
+            background: white;
+            width: 100%;
+            max-width: 1000px;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 30px 60px rgba(15, 23, 42, 0.15);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .appointments {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .appointment {
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 1.6rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+
+        .label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .value {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .status {
+            font-weight: 600;
+        }
+
+        .status.OCZEKUJĄCA {
+            color: #d97706;
+        }
+
+        .status.ZAREZERWOWANA {
+            color: #16a34a;
+        }
+
+        .status.ANULOWANA {
+            color: #dc2626;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        button {
+            padding: 0.45rem 0.9rem;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .cancel {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .confirm {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .empty {
+            text-align: center;
+            color: #64748b;
+            padding: 3rem 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <a href="/">System rezerwacji wizyt</a>
+    </header>
+
+    <main>
+
+        <div class="panel">
+
+            <div class="panel-header">
+                <h2>Moje wizyty</h2>
+
+                <a sec:authorize="hasRole('CLIENT')" href="/appointments/new">
+                    Zarezerwuj wizytę
+                </a>
+            </div>
+
+            <div class="appointments" th:if="${appointments != null and !appointments.isEmpty()}">
+
+                <div class="appointment" th:each="a : ${appointments}">
+
+                    <div>
+                        <div class="label">Data</div>
+                        <div class="value" th:text="${a.appointmentDateTime}"></div>
+                    </div>
+
+                    <div>
+                        <div class="label">Doradca</div>
+                        <div class="value" th:text="${a.advisor.user.firstName + ' ' + a.advisor.user.lastName}">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="label">Usługa</div>
+                        <div class="value" th:text="${a.service.name}"></div>
+                    </div>
+
+                    <div>
+                        <div class="label">Status</div>
+                        <div class="value status" th:classappend="${a.status.name}" th:text="${a.status.name}">
+                        </div>
+                    </div>
+
+                    <div class="actions">
+
+                        <!-- POTWIERDZANIE – DORADCA -->
+                        <form sec:authorize="hasRole('ADVISOR')" th:if="${a.status.name == 'OCZEKUJĄCA'}"
+                            th:action="@{/appointments/{id}/confirm(id=${a.id})}" method="post">
+                            <button class="confirm" type="submit">Potwierdź</button>
+                        </form>
+
+                        <!-- ANULOWANIE – DORADCA -->
+                        <form sec:authorize="hasRole('ADVISOR')" th:action="@{/appointments/{id}/cancel(id=${a.id})}"
+                            method="post">
+                            <button class="cancel" type="submit">Anuluj</button>
+                        </form>
+
+                        <!-- ANULOWANIE – KLIENT TYLKO OCZEKUJĄCA -->
+                        <form sec:authorize="hasRole('CLIENT')" th:if="${a.status.name == 'OCZEKUJĄCA'}"
+                            th:action="@{/appointments/{id}/cancel(id=${a.id})}" method="post">
+                            <button class="cancel" type="submit">Anuluj</button>
+                        </form>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="empty" th:if="${appointments == null or appointments.isEmpty()}">
+                Nie masz jeszcze żadnych wizyt.
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+
+</html>

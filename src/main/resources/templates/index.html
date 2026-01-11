@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Panel główny</title>
+</head>
+
+<body>
+
+    <h2>Witaj <span th:text="${user.firstName}"></span>!</h2>
+
+    <!-- KLIENT -->
+    <div th:if="${#authorization.expression('hasRole(''CLIENT'')')}">
+        <h3>Panel klienta</h3>
+        <a href="/appointments">Moje wizyty</a><br>
+        <a href="/appointments/new">Zarezerwuj wizytę</a>
+    </div>
+
+    <!-- DORADCA -->
+    <div th:if="${#authorization.expression('hasRole(''ADVISOR'')')}">
+        <h3>Panel doradcy</h3>
+        <a href="/appointments">Wizyty klientów</a>
+    </div>
+
+    <br>
+    <a href="/logout">Wyloguj</a>
+
+</body>
+
+</html>

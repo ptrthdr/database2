@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Rejestracja</title>
+</head>
+
+<body>
+
+    <h2>Rejestracja</h2>
+
+    <form method="post" action="/register">
+        <label>Email:</label><br>
+        <input type="email" name="email" required><br><br>
+
+        <label>Hasło:</label><br>
+        <input type="password" name="password" required><br><br>
+
+        <label>Imię:</label><br>
+        <input type="text" name="firstName" required><br><br>
+
+        <label>Nazwisko:</label><br>
+        <input type="text" name="lastName" required><br><br>
+
+        <label>Typ konta:</label><br>
+        <select name="accountType" onchange="toggleSpec(this.value)" required>
+            <option value="CLIENT">Klient</option>
+            <option value="ADVISOR">Doradca</option>
+        </select><br><br>
+
+        <div id="specDiv" style="display:none;">
+            <label>Specjalizacja:</label><br>
+            <input type="text" name="specialization">
+            <br><br>
+        </div>
+
+        <button type="submit">Zarejestruj</button>
+    </form>
+
+    <script>
+        function toggleSpec(value) {
+            document.getElementById('specDiv').style.display =
+                value === 'ADVISOR' ? 'block' : 'none';
+        }
+    </script>
+
+</body>
+
+</html>

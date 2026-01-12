@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dostępne terminy</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                radial-gradient(1200px 500px at 50% 0%, rgba(59, 130, 246, .08), transparent 70%),
+                linear-gradient(180deg, #f1f5f9 0%, #e5eaf0 100%);
+            color: #0f172a;
+        }
+
+        main {
+            display: flex;
+            justify-content: center;
+            padding: 3rem 2rem 4rem;
+        }
+
+        .card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 900px;
+            border-radius: 22px;
+            padding: 3rem 3.5rem;
+            box-shadow: 0 40px 80px rgba(15, 23, 42, 0.18);
+        }
+
+        .title {
+            text-align: center;
+            padding: 1rem;
+            margin-bottom: 2.5rem;
+            border-radius: 14px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #f8fafc;
+            background: linear-gradient(135deg, #020617, #1e293b);
+        }
+
+        .slot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.6rem 2rem;
+            border-radius: 16px;
+            border: 1px solid #e5e7eb;
+            background: linear-gradient(180deg, #ffffff, #f8fafc);
+            margin-bottom: 1.4rem;
+        }
+
+        .info {
+            display: flex;
+            flex-direction: column;
+            gap: .35rem;
+        }
+
+        .advisor {
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+
+        .datetime {
+            font-size: .95rem;
+            color: #475569;
+        }
+
+        button {
+            padding: .6rem 1.4rem;
+            border-radius: 10px;
+            border: none;
+            font-size: .9rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #ffffff;
+            background: #3b82f6;
+            transition: background .2s ease;
+        }
+
+        button:hover {
+            background: #2563eb;
+        }
+
+        .empty {
+            text-align: center;
+            color: #64748b;
+            font-size: 1rem;
+            padding: 2.5rem 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- WSPÓLNY HEADER -->
+    <div th:replace="fragments/header :: body"></div>
+
+    <main>
+        <div class="card">
+
+            <div class="title">
+                Dostępne terminy
+            </div>
+
+            <!-- LISTA SLOTÓW -->
+            <div th:if="${slots != null and !slots.isEmpty()}">
+
+                <div class="slot" th:each="slot : ${slots}">
+
+                    <div class="info">
+                        <div class="advisor"
+                            th:text="${slot.advisor.user.firstName + ' ' + slot.advisor.user.lastName}">
+                            Doradca
+                        </div>
+
+                        <div class="datetime" th:text="${#temporals.format(slot.startDateTime, 'dd.MM.yyyy HH:mm')}">
+                            Data
+                        </div>
+                    </div>
+
+                    <!-- ✅ NULL-SAFE CSRF -->
+                    <form th:action="@{/client/slots/{id}/reserve(id=${slot.id})}" method="post">
+
+                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}"
+                            th:value="${_csrf.token}" />
+
+                        <button type="submit">
+                            Zarezerwuj
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+
+            <!-- BRAK TERMINÓW -->
+            <div class="empty" th:if="${slots == null or slots.isEmpty()}">
+                Brak dostępnych terminów dla wybranej usługi.
+            </div>
+
+        </div>
+    </main>
+
+</body>
+
+</html>

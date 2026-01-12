@@ -1,7 +1,6 @@
 package pl.edu.rezerwacje.advisor_booking.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "appointments")
@@ -14,36 +13,16 @@ public class Appointment {
     // ===============================
     // KLIENT
     // ===============================
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "client_id", nullable = false)
     private User client;
 
     // ===============================
-    // DORADCA
+    // SLOT CZASOWY
     // ===============================
-    @ManyToOne
-    @JoinColumn(name = "advisor_id", nullable = false)
-    private Advisor advisor;
-
-    // ===============================
-    // USŁUGA (ENCJA!)
-    // ===============================
-    @ManyToOne
-    @JoinColumn(name = "service_id", nullable = false)
-    private AdvisoryService service;
-
-    // ===============================
-    // STATUS
-    // ===============================
-    @ManyToOne
-    @JoinColumn(name = "status_id", nullable = false)
-    private AppointmentStatus status;
-
-    // ===============================
-    // DATA I GODZINA
-    // ===============================
-    @Column(name = "appointment_datetime", nullable = false)
-    private LocalDateTime appointmentDateTime;
+    @OneToOne(optional = false)
+    @JoinColumn(name = "slot_id", unique = true, nullable = false)
+    private TimeSlot slot;
 
     // ===== GETTERY / SETTERY =====
 
@@ -59,35 +38,11 @@ public class Appointment {
         this.client = client;
     }
 
-    public Advisor getAdvisor() {
-        return advisor;
+    public TimeSlot getSlot() {
+        return slot;
     }
 
-    public void setAdvisor(Advisor advisor) {
-        this.advisor = advisor;
-    }
-
-    public AdvisoryService getService() {
-        return service;
-    }
-
-    public void setService(AdvisoryService service) {
-        this.service = service;
-    }
-
-    public AppointmentStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(AppointmentStatus status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getAppointmentDateTime() {
-        return appointmentDateTime;
-    }
-
-    public void setAppointmentDateTime(LocalDateTime appointmentDateTime) {
-        this.appointmentDateTime = appointmentDateTime;
+    public void setSlot(TimeSlot slot) {
+        this.slot = slot;
     }
 }

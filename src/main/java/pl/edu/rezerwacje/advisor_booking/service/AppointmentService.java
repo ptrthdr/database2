@@ -6,127 +6,84 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.edu.rezerwacje.advisor_booking.entity.*;
 import pl.edu.rezerwacje.advisor_booking.repository.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
-    private final AppointmentStatusRepository statusRepository;
-    private final AdvisorRepository advisorRepository;
+    private final TimeSlotRepository slotRepository;
 
     public AppointmentService(
             AppointmentRepository appointmentRepository,
-            AppointmentStatusRepository statusRepository,
-            AdvisorRepository advisorRepository) {
+            TimeSlotRepository slotRepository) {
         this.appointmentRepository = appointmentRepository;
-        this.statusRepository = statusRepository;
-        this.advisorRepository = advisorRepository;
+        this.slotRepository = slotRepository;
     }
 
     // ===============================
-    // REZERWACJA – STATUS OCZEKUJĄCA
+    // REZERWACJA SLOTU (KLIENT)
     // ===============================
     @Transactional
-    public Appointment bookAppointment(
-            User client,
-            Advisor advisor,
-            AdvisoryService service,
-            LocalDateTime dateTime) {
-        if (appointmentRepository
-                .existsByAdvisorAndAppointmentDateTimeAndStatus_NameIn(
-                        advisor,
-                        dateTime,
-                        List.of("ZAREZERWOWANA", "OCZEKUJĄCA"))) {
+    public void bookSlot(Long slotId, User client) {
+
+        TimeSlot slot = slotRepository.findById(slotId)
+                .orElseThrow(() -> new IllegalArgumentException("Termin nie istnieje"));
+
+        if (slot.getStatus() != SlotStatus.WOLNY) {
             throw new IllegalStateException("Termin jest już zajęty");
         }
 
-        AppointmentStatus pending = statusRepository
-                .findByName("OCZEKUJĄCA")
-                .orElseThrow(() -> new IllegalStateException("Brak statusu OCZEKUJĄCA"));
-
         Appointment appointment = new Appointment();
         appointment.setClient(client);
-        appointment.setAdvisor(advisor);
-        appointment.setService(service);
-        appointment.setStatus(pending);
-        appointment.setAppointmentDateTime(dateTime);
+        appointment.setSlot(slot);
 
-        return appointmentRepository.save(appointment);
+        slot.setStatus(SlotStatus.ZAREZERWOWANY);
+        slot.setAppointment(appointment);
+
+        appointmentRepository.save(appointment);
+        slotRepository.save(slot);
     }
 
     // ===============================
     // LISTA WIZYT KLIENTA
     // ===============================
     public List<Appointment> getAppointmentsForClient(Long clientId) {
-        return appointmentRepository.findByClientId(clientId);
+        return appointmentRepository.findByClient_Id(clientId);
     }
 
     // ===============================
-    // LISTA WIZYT DORADCY (POPRAWIONE)
+    // LISTA WIZYT DORADCY
+    // (przez slot -> advisor -> user)
     // ===============================
     public List<Appointment> getAppointmentsForAdvisor(Long advisorUserId) {
-
-        Advisor advisor = advisorRepository.findByUser_Id(advisorUserId)
-                .orElseThrow(() -> new IllegalArgumentException("Doradca nie istnieje"));
-
-        return appointmentRepository.findByAdvisor(advisor);
+        return appointmentRepository
+                .findBySlot_Advisor_User_Id(advisorUserId);
     }
 
     // ===============================
-    // ANULOWANIE – KLIENT / DORADCA
+    // ANULOWANIE REZERWACJI
     // ===============================
     @Transactional
     public void cancelAppointment(Long appointmentId, User currentUser) {
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new IllegalArgumentException("Nie znaleziono wizyty"));
+                .orElseThrow(() -> new IllegalArgumentException("Wizyta nie istnieje"));
 
-        AppointmentStatus cancelled = statusRepository
-                .findByName("ANULOWANA")
-                .orElseThrow(() -> new IllegalStateException("Brak statusu ANULOWANA"));
+        TimeSlot slot = appointment.getSlot();
 
-        // klient
-        if (appointment.getClient().getId().equals(currentUser.getId())) {
+        boolean isClient = appointment.getClient().getId().equals(currentUser.getId());
 
-            if (appointment.getAppointmentDateTime().isBefore(LocalDateTime.now())) {
-                throw new IllegalStateException("Nie można anulować wizyty w przeszłości");
-            }
+        boolean isAdvisor = slot.getAdvisor().getUser().getId().equals(currentUser.getId());
 
-            appointment.setStatus(cancelled);
-            appointmentRepository.save(appointment);
-            return;
+        if (!isClient && !isAdvisor) {
+            throw new SecurityException("Brak uprawnień");
         }
 
-        // doradca
-        if (appointment.getAdvisor().getUser().getId().equals(currentUser.getId())) {
-            appointment.setStatus(cancelled);
-            appointmentRepository.save(appointment);
-            return;
-        }
+        slot.setStatus(SlotStatus.WOLNY);
+        slot.setAppointment(null);
 
-        throw new SecurityException("Brak uprawnień");
-    }
-
-    // ===============================
-    // POTWIERDZANIE – DORADCA
-    // ===============================
-    @Transactional
-    public void confirmAppointment(Long appointmentId, User currentUser) {
-
-        Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new IllegalArgumentException("Nie znaleziono wizyty"));
-
-        if (!appointment.getAdvisor().getUser().getId().equals(currentUser.getId())) {
-            throw new SecurityException("Brak uprawnień do potwierdzenia");
-        }
-
-        AppointmentStatus confirmed = statusRepository
-                .findByName("ZAREZERWOWANA")
-                .orElseThrow(() -> new IllegalStateException("Brak statusu ZAREZERWOWANA"));
-
-        appointment.setStatus(confirmed);
-        appointmentRepository.save(appointment);
+        appointmentRepository.delete(appointment);
+        slotRepository.save(slot);
     }
 }

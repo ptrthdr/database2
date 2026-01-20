@@ -14,8 +14,12 @@ public class HomeController {
     public String home(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             Model model) {
-        model.addAttribute("user", userDetails.getUser());
-        model.addAttribute("roles", userDetails.getAuthorities());
+
+        if (userDetails != null) {
+            model.addAttribute("user", userDetails.getUser());
+            model.addAttribute("roles", userDetails.getAuthorities());
+        }
+
         return "home";
     }
 }

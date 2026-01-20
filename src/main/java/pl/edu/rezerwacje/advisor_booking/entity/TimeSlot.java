@@ -2,6 +2,8 @@ package pl.edu.rezerwacje.advisor_booking.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "time_slot", uniqueConstraints = @UniqueConstraint(columnNames = { "advisor_id", "start_date_time" }))
@@ -11,21 +13,31 @@ public class TimeSlot {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // ===== DORADCA =====
     @ManyToOne(optional = false)
+    @JoinColumn(name = "advisor_id")
     private Advisor advisor;
 
-    @ManyToOne(optional = false)
-    private AdvisoryService service;
+    // ===== WIELE USŁUG DLA JEDNEGO TERMINU =====
+    @ManyToMany
+    @JoinTable(name = "time_slot_services", joinColumns = @JoinColumn(name = "time_slot_id"), inverseJoinColumns = @JoinColumn(name = "service_id"))
+    private Set<AdvisoryService> services = new HashSet<>();
 
+    // ===== DATA =====
     @Column(name = "start_date_time", nullable = false)
     private LocalDateTime startDateTime;
 
+    // ===== STATUS =====
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SlotStatus status;
 
+    // ===== REZERWACJA =====
     @OneToOne
+    @JoinColumn(name = "appointment_id")
     private Appointment appointment;
+
+    // ===== GETTERY / SETTERY =====
 
     public Long getId() {
         return id;
@@ -39,12 +51,12 @@ public class TimeSlot {
         this.advisor = advisor;
     }
 
-    public AdvisoryService getService() {
-        return service;
+    public Set<AdvisoryService> getServices() {
+        return services;
     }
 
-    public void setService(AdvisoryService service) {
-        this.service = service;
+    public void setServices(Set<AdvisoryService> services) {
+        this.services = services;
     }
 
     public LocalDateTime getStartDateTime() {

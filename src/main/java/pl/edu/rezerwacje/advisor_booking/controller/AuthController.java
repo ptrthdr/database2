@@ -41,8 +41,9 @@ public class AuthController {
             @RequestParam String password,
             @RequestParam String firstName,
             @RequestParam String lastName,
-            @RequestParam String accountType,
+            @RequestParam("role") String accountType, // ✅ KLUCZOWA POPRAWKA
             @RequestParam(required = false) String specialization) {
+
         registrationService.register(
                 email,
                 password,
@@ -51,7 +52,6 @@ public class AuthController {
                 accountType,
                 specialization);
 
-        // po rejestracji → logowanie
         return "redirect:/login";
     }
 }

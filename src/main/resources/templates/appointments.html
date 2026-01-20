@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Moje wizyty</title>
+    <title>Wizyty</title>
 
     <style>
         body {
@@ -21,7 +21,7 @@
 
         .panel {
             background: white;
-            max-width: 1000px;
+            max-width: 1100px;
             width: 100%;
             border-radius: 20px;
             padding: 2.5rem;
@@ -29,10 +29,30 @@
         }
 
         .panel-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .filters {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filters select,
+        .filters input {
+            padding: .45rem .7rem;
+            border-radius: 8px;
+            border: 1px solid #cbd5f5;
+        }
+
+        .filters button {
+            padding: .45rem 1rem;
+            border-radius: 8px;
+            border: none;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
         }
 
         .appointments {
@@ -45,7 +65,7 @@
             border-radius: 16px;
             padding: 1.6rem;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
         }
 
@@ -63,22 +83,21 @@
             font-weight: 600;
         }
 
-        .actions {
-            display: flex;
-            gap: .5rem;
-            align-items: center;
+        .status.ZAREZERWOWANY {
+            color: #2563eb;
         }
 
-        button {
-            border-radius: 8px;
-            border: none;
-            padding: .45rem .9rem;
-            cursor: pointer;
+        .status.ZAKONCZONA {
+            color: #64748b;
         }
 
-        .cancel {
+        .actions button {
             background: #fee2e2;
             color: #991b1b;
+            border: none;
+            border-radius: 8px;
+            padding: .4rem .9rem;
+            cursor: pointer;
         }
 
         .empty {
@@ -91,7 +110,7 @@
 
 <body>
 
-    <div th:replace="fragments/header :: body"></div>
+    <div th:replace="~{fragments/header :: body}"></div>
 
     <main>
         <div class="panel">
@@ -101,6 +120,24 @@
                 <h2 sec:authorize="hasRole('ADVISOR')">Wizyty klientów</h2>
             </div>
 
+            <!-- ===== FILTRY ===== -->
+            <form class="filters" method="get" th:action="@{/appointments}">
+
+                <select name="status">
+                    <option value="">Wszystkie statusy</option>
+                    <option value="ZAREZERWOWANY" th:selected="${status == 'ZAREZERWOWANY'}">
+                        ZAREZERWOWANY
+                    </option>
+                    <option value="ZAKONCZONA" th:selected="${status == 'ZAKONCZONA'}">
+                        ZAKONCZONA
+                    </option>
+                </select>
+
+                <input type="text" name="query" placeholder="Imię, nazwisko lub ID" th:value="${query}" />
+
+                <button type="submit">Filtruj</button>
+            </form>
+
             <!-- ===== LISTA WIZYT ===== -->
             <div class="appointments" th:if="${appointments != null and !appointments.isEmpty()}">
 
@@ -108,53 +145,51 @@
 
                     <div>
                         <div class="label">Data</div>
-                        <div class="value" th:text="${#temporals.format(a.slot.startDateTime, 'dd.MM.yyyy HH:mm')}">
-                            data
+                        <div class="value" th:text="${#temporals.format(a.slot.startDateTime,'dd.MM.yyyy HH:mm')}">
                         </div>
                     </div>
 
-                    <div>
+                    <div sec:authorize="hasRole('CLIENT')">
                         <div class="label">Doradca</div>
-                        <div class="value"
-                            th:text="${a.slot.advisor.user.firstName + ' ' + a.slot.advisor.user.lastName}">
-                            doradca
+                        <div class="value" th:text="${a.slot.advisor.user.firstName
+                         + ' ' + a.slot.advisor.user.lastName
+                         + ' (ID: ' + a.slot.advisor.user.id + ')'}">
+                        </div>
+                    </div>
+
+                    <div sec:authorize="hasRole('ADVISOR')">
+                        <div class="label">Klient</div>
+                        <div class="value" th:text="${a.client.firstName
+                         + ' ' + a.client.lastName
+                         + ' (ID: ' + a.client.id + ')'}">
                         </div>
                     </div>
 
                     <div>
-                        <div class="label">Usługa</div>
-                        <div class="value" th:text="${a.slot.service.name}">
-                            usługa
+                        <div class="label">Usługi</div>
+                        <div class="value">
+                            <span th:each="s, i : ${a.slot.services}" th:text="${s.name + (i.last ? '' : ', ')}">
+                            </span>
                         </div>
                     </div>
 
                     <div>
                         <div class="label">Status</div>
-                        <div class="value status" th:text="${a.slot.status}">
-                            status
+                        <div class="value status" th:classappend="${a.slot.status}" th:text="${a.slot.status}">
                         </div>
                     </div>
 
-                    <!-- ===== ANULOWANIE ===== -->
-                    <div class="actions">
+                    <div class="actions" th:if="${a.slot.status.name() == 'ZAREZERWOWANY'}">
                         <form th:action="@{/appointments/{id}/cancel(id=${a.id})}" method="post">
-
-                            <!-- ✅ NULL-SAFE CSRF -->
-                            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}"
-                                th:value="${_csrf.token}" />
-
-                            <button type="submit" class="cancel">
-                                Anuluj
-                            </button>
+                            <button type="submit">Anuluj</button>
                         </form>
                     </div>
 
                 </div>
             </div>
 
-            <!-- ===== BRAK WIZYT ===== -->
             <div class="empty" th:if="${appointments == null or appointments.isEmpty()}">
-                Nie masz jeszcze żadnych wizyt.
+                Brak wizyt.
             </div>
 
         </div>

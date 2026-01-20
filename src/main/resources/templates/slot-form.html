@@ -15,7 +15,7 @@
             margin: 0;
             min-height: 100vh;
             background:
-                radial-gradient(1200px 500px at 50% 0%, rgba(59, 130, 246, 0.08), transparent 70%),
+                radial-gradient(1200px 500px at 50% 0%, rgba(59, 130, 246, .08), transparent 70%),
                 linear-gradient(180deg, #f1f5f9 0%, #e5eaf0 100%);
             color: #0f172a;
         }
@@ -29,44 +29,100 @@
         .card {
             background: white;
             width: 100%;
-            max-width: 500px;
-            border-radius: 22px;
+            max-width: 560px;
+            border-radius: 28px;
             padding: 3rem;
-            box-shadow: 0 40px 80px rgba(15, 23, 42, 0.18);
+            box-shadow: 0 40px 80px rgba(15, 23, 42, .18);
         }
 
         .title {
             text-align: center;
-            margin-bottom: 2rem;
-            font-size: 1.4rem;
+            margin-bottom: 2.2rem;
+            font-size: 1.6rem;
             font-weight: 600;
         }
 
         label {
             display: block;
-            margin-bottom: 0.4rem;
-            font-size: 0.9rem;
+            margin-bottom: .6rem;
+            font-size: .95rem;
             color: #475569;
         }
 
-        input,
-        select {
+        input[type="datetime-local"] {
             width: 100%;
-            padding: 0.6rem;
-            border-radius: 8px;
-            border: 1px solid #cbd5f5;
-            margin-bottom: 1.4rem;
+            padding: .7rem .9rem;
+            border-radius: 14px;
+            border: 1px solid #c7d2fe;
+            margin-bottom: 2rem;
+            background: #f8fafc;
+        }
+
+        /* ===== ALERT ===== */
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-radius: 14px;
+            padding: .9rem 1.1rem;
+            margin-bottom: 1.6rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        /* ===== USŁUGI ===== */
+        .services {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .service-card input {
+            display: none;
+        }
+
+        .service-card label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.2rem;
+            border-radius: 18px;
+            border: 1px solid #e5e7eb;
+            background: linear-gradient(180deg, #ffffff, #f8fafc);
+            cursor: pointer;
+            transition: all .25s ease;
+            font-weight: 500;
+        }
+
+        .service-card label:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 12px 30px rgba(59, 130, 246, .15);
+        }
+
+        .service-card input:checked+label {
+            border-color: #2563eb;
+            background: linear-gradient(180deg, #eff6ff, #dbeafe);
+            box-shadow: 0 16px 40px rgba(37, 99, 235, .25);
+        }
+
+        .check {
+            opacity: 0;
+            font-weight: 700;
+            color: #2563eb;
+        }
+
+        .service-card input:checked+label .check {
+            opacity: 1;
         }
 
         button {
             width: 100%;
-            padding: 0.7rem;
-            border-radius: 10px;
+            padding: .9rem;
+            border-radius: 16px;
             border: none;
             background: #2563eb;
-            color: #fff;
-            font-size: 0.95rem;
-            font-weight: 500;
+            color: white;
+            font-size: 1.05rem;
+            font-weight: 600;
             cursor: pointer;
         }
 
@@ -78,25 +134,39 @@
 
 <body>
 
-    <div th:replace="fragments/header :: body"></div>
+    <!-- HEADER -->
+    <div th:replace="~{fragments/header :: body}"></div>
 
     <main>
         <div class="card">
 
             <div class="title">Dodaj wolny termin</div>
 
-            <form method="post" th:action="@{/slots}">
+            <!-- ✅ KOMUNIKAT BŁĘDU Z BACKENDU -->
+            <div class="error" th:if="${errorMessage}" th:text="${errorMessage}">
+            </div>
 
-                <label>Usługa</label>
-                <select name="serviceId" required>
-                    <option th:each="s : ${services}" th:value="${s.id}" th:text="${s.name}">
-                    </option>
-                </select>
+            <form method="post" th:action="@{/advisor/slots}">
+
+                <label>Usługi (kliknij, aby zaznaczyć)</label>
+
+                <div class="services">
+                    <div class="service-card" th:each="s : ${services}">
+                        <input type="checkbox" name="serviceIds" th:id="'service-' + ${s.id}" th:value="${s.id}" />
+                        <label th:for="'service-' + ${s.id}">
+                            <span th:text="${s.name}">Usługa</span>
+                            <span class="check">✓</span>
+                        </label>
+                    </div>
+                </div>
 
                 <label>Data i godzina</label>
                 <input type="datetime-local" name="dateTime" required>
 
-                <button type="submit">Dodaj termin</button>
+                <button type="submit">
+                    Dodaj termin
+                </button>
+
             </form>
 
         </div>

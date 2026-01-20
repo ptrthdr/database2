@@ -8,7 +8,7 @@
     <style>
         * {
             box-sizing: border-box;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family: system-ui, sans-serif;
         }
 
         body {
@@ -30,34 +30,23 @@
         }
 
         h1 {
-            margin-top: 0;
-            margin-bottom: 1.5rem;
             text-align: center;
-            color: #0f172a;
+            margin-bottom: 1.5rem;
         }
 
         label {
             display: block;
+            margin-top: 1rem;
             font-size: 0.85rem;
             color: #475569;
-            margin-bottom: 0.3rem;
-            margin-top: 1rem;
         }
 
         input,
         select {
             width: 100%;
-            padding: 0.65rem 0.75rem;
+            padding: 0.65rem;
             border-radius: 10px;
             border: 1px solid #cbd5f5;
-            font-size: 0.9rem;
-        }
-
-        input:focus,
-        select:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
         }
 
         button {
@@ -68,7 +57,6 @@
             border: none;
             background: #2563eb;
             color: white;
-            font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
         }
@@ -86,11 +74,10 @@
         .footer a {
             color: #2563eb;
             text-decoration: none;
-            font-weight: 500;
         }
 
-        .footer a:hover {
-            text-decoration: underline;
+        .hidden {
+            display: none;
         }
     </style>
 </head>
@@ -103,26 +90,31 @@
 
         <form th:action="@{/register}" method="post">
 
-            <label for="email">Email</label>
-            <input id="email" type="email" name="email" required>
+            <label>Email</label>
+            <input type="email" name="email" required>
 
-            <label for="password">Hasło</label>
-            <input id="password" type="password" name="password" required>
+            <label>Hasło</label>
+            <input type="password" name="password" required>
 
-            <label for="firstName">Imię</label>
-            <input id="firstName" type="text" name="firstName" required>
+            <label>Imię</label>
+            <input type="text" name="firstName" required>
 
-            <label for="lastName">Nazwisko</label>
-            <input id="lastName" type="text" name="lastName" required>
+            <label>Nazwisko</label>
+            <input type="text" name="lastName" required>
 
-            <label for="role">Typ konta</label>
-            <select id="role" name="role">
+            <label>Typ konta</label>
+            <select name="role" id="role">
                 <option value="CLIENT">Klient</option>
                 <option value="ADVISOR">Doradca</option>
             </select>
 
-            <button type="submit">Zarejestruj się</button>
+            <!-- SPECJALIZACJA DORADCY -->
+            <div id="specializationBox" class="hidden">
+                <label>Specjalizacja</label>
+                <input type="text" name="specialization">
+            </div>
 
+            <button type="submit">Zarejestruj się</button>
         </form>
 
         <div class="footer">
@@ -131,6 +123,21 @@
         </div>
 
     </div>
+
+    <script>
+        const roleSelect = document.getElementById('role');
+        const specializationBox = document.getElementById('specializationBox');
+
+        function toggleSpecialization() {
+            specializationBox.classList.toggle(
+                'hidden',
+                roleSelect.value !== 'ADVISOR'
+            );
+        }
+
+        roleSelect.addEventListener('change', toggleSpecialization);
+        toggleSpecialization();
+    </script>
 
 </body>
 

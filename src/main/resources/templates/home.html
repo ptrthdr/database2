@@ -106,8 +106,8 @@
 
 <body>
 
-    <!-- WSPÓLNY HEADER -->
-    <div th:replace="fragments/header :: body"></div>
+    <!-- ✅ POPRAWNA SKŁADNIA FRAGMENTU -->
+    <div th:replace="~{fragments/header :: body}"></div>
 
     <section class="intro">
         <h2>Panel użytkownika</h2>
@@ -148,7 +148,8 @@
                     </p>
                 </a>
 
-                <a sec:authorize="hasRole('ADVISOR')" href="/slots/new" class="action-card">
+                <!-- 🔥 NAJWAŻNIEJSZA POPRAWKA -->
+                <a sec:authorize="hasRole('ADVISOR')" href="/advisor/slots/new" class="action-card">
                     <h4>Dodaj wolny termin</h4>
                     <p>
                         Dodaj nowy dostępny termin,

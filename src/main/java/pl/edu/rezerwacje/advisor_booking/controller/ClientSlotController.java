@@ -5,6 +5,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import pl.edu.rezerwacje.advisor_booking.entity.*;
 import pl.edu.rezerwacje.advisor_booking.repository.*;
@@ -39,7 +40,7 @@ public class ClientSlotController {
     }
 
     // ===============================
-    // LISTA WOLNYCH SLOTÓW
+    // LISTA WOLNYCH SLOTÓW DLA USŁUGI
     // ===============================
     @GetMapping("/{serviceId}")
     public String availableSlots(
@@ -52,22 +53,30 @@ public class ClientSlotController {
         model.addAttribute("service", service);
         model.addAttribute(
                 "slots",
-                slotRepository.findByServiceAndStatus(
-                        service,
-                        SlotStatus.WOLNY));
+                slotRepository.findFreeSlotsByService(serviceId));
 
         return "client-slots-list";
     }
 
     // ===============================
-    // REZERWACJA SLOTU
+    // REZERWACJA SLOTU (Z OBSŁUGĄ BŁĘDU)
     // ===============================
     @PostMapping("/{slotId}/reserve")
     public String reserveSlot(
             @PathVariable Long slotId,
-            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            RedirectAttributes redirectAttributes) {
 
-        appointmentService.bookSlot(slotId, userDetails.getUser());
+        try {
+            appointmentService.bookSlot(slotId, userDetails.getUser());
+        } catch (IllegalStateException e) {
+            // 🔴 komunikat pokaże się w client-slots-list.html
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+
+            // wracamy do listy slotów (bez crasha)
+            return "redirect:/client/slots";
+        }
+
         return "redirect:/appointments";
     }
 }

@@ -46,6 +46,18 @@
             background: linear-gradient(135deg, #020617, #1e293b);
         }
 
+        /* 🔴 KOMUNIKAT BŁĘDU */
+        .error-box {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 1.2rem 1.5rem;
+            border-radius: 18px;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+
         .slot {
             display: flex;
             justify-content: space-between;
@@ -110,6 +122,11 @@
                 Dostępne terminy
             </div>
 
+            <!-- 🔴 KOMUNIKAT BŁĘDU (np. konflikt terminów) -->
+            <div th:if="${error}" class="error-box">
+                <span th:text="${error}"></span>
+            </div>
+
             <!-- LISTA SLOTÓW -->
             <div th:if="${slots != null and !slots.isEmpty()}">
 
@@ -126,9 +143,9 @@
                         </div>
                     </div>
 
-                    <!-- ✅ NULL-SAFE CSRF -->
                     <form th:action="@{/client/slots/{id}/reserve(id=${slot.id})}" method="post">
 
+                        <!-- CSRF NULL-SAFE -->
                         <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}"
                             th:value="${_csrf.token}" />
 

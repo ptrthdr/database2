@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dodaj wolny termin</title>
+</head>
+
+<body>
+
+    <div th:replace="fragments/header :: body"></div>
+
+    <main style="display:flex;justify-content:center;padding:4rem">
+        <form method="post" th:action="@{/advisor/slots}" style="
+            background:white;
+            padding:3rem;
+            border-radius:32px;
+            width:520px;
+            box-shadow:0 40px 80px rgba(15,23,42,.18);
+          ">
+
+            <h2 style="margin-bottom:2rem">Dodaj wolny termin</h2>
+
+            <!-- USŁUGI -->
+            <label style="font-weight:600">Usługi</label>
+            <div style="display:grid;gap:.8rem;margin:1rem 0 2rem">
+
+                <label th:each="service : ${services}" style="
+                     display:flex;
+                     align-items:center;
+                     gap:.6rem;
+                     padding:.9rem 1.2rem;
+                     border-radius:14px;
+                     border:1px solid #e5e7eb;
+                     cursor:pointer;
+                   ">
+                    <input type="checkbox" name="serviceIds" th:value="${service.id}">
+                    <span th:text="${service.name}"></span>
+                </label>
+
+            </div>
+
+            <!-- DATA -->
+            <label style="font-weight:600">Data i godzina</label>
+            <input type="datetime-local" name="dateTime" required style="
+                 width:100%;
+                 padding:1rem;
+                 border-radius:14px;
+                 border:1px solid #c7d2fe;
+                 margin:1rem 0 2.5rem;
+               ">
+
+            <!-- CSRF -->
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+            <button type="submit" style="
+                  width:100%;
+                  padding:1.2rem;
+                  border-radius:16px;
+                  background:#2563eb;
+                  color:white;
+                  border:none;
+                  font-size:1.1rem;
+                  font-weight:600;
+                  cursor:pointer;
+                ">
+                Dodaj termin
+            </button>
+
+        </form>
+    </main>
+
+</body>
+
+</html>
